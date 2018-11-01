@@ -1,2 +1,2 @@
 # Algorithm & Data Structure
-Record what I have learned.
+Record all the algorithm and data structure that I have learned.
