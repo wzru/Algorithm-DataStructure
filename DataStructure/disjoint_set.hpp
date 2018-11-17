@@ -47,8 +47,8 @@ void DisjointSet::resize (int size)
         Rank_.resize (size + 1);
         for (int i = size_ + 1; i <= size; ++i)
             Father_[i] = i, Rank_[i] = 1;
-        size_ = size;
     }
+    size_ = size;
 }
 
 int DisjointSet::find (int x)
@@ -81,7 +81,7 @@ void DisjointSet::unite (int x, int y)
 
 int DisjointSet::doFind (int x)
 {
-    return x == Father_[x] ? x : Father_[x] = find (Father_[x]);
+    return x == Father_[x] ? x : Father_[x] = doFind (Father_[x]);
 }
 
 #endif
