@@ -15,17 +15,17 @@ public:
     DisjointSet() = default;
     DisjointSet (int size);
     ~DisjointSet() = default;
-    int getSize();
-    void resize (int size);
-    bool areDisjoint (int x, int y);
-    void unite (int x, int y);
+    int GetSize();
+    void Resize (int size);
+    bool AreDisjoint (int x, int y);
+    void Unite (int x, int y);
 
 private:
     int size_;
     std::vector<int> Father_, Rank_;
 
-    int find (int x);
-    int doFind (int x);
+    int Find (int x);
+    int DoFind (int x);
 };
 
 DisjointSet::DisjointSet (int size) : size_ (size), Father_ (size + 1), Rank_ (size + 1, 1)
@@ -34,12 +34,12 @@ DisjointSet::DisjointSet (int size) : size_ (size), Father_ (size + 1), Rank_ (s
         Father_[i] = i;
 }
 
-int DisjointSet::getSize()
+int DisjointSet::GetSize()
 {
     return size_;
 }
 
-void DisjointSet::resize (int size)
+void DisjointSet::Resize (int size)
 {
     if (size > size_)
     {
@@ -51,21 +51,21 @@ void DisjointSet::resize (int size)
     size_ = size;
 }
 
-int DisjointSet::find (int x)
+int DisjointSet::Find (int x)
 {
     if (x > size_)
-        resize (x);
-    return doFind (x);
+        Resize (x);
+    return DoFind (x);
 }
 
-bool DisjointSet::areDisjoint (int x, int y)
+bool DisjointSet::AreDisjoint (int x, int y)
 {
-    return find (x) == find (y);
+    return Find (x) == Find (y);
 }
 
-void DisjointSet::unite (int x, int y)
+void DisjointSet::Unite (int x, int y)
 {
-    int fx = find (x), fy = find (y);
+    int fx = Find (x), fy = Find (y);
     if (fx != fy)
     {
         if (Rank_[fx] < Rank_[fy])
@@ -79,9 +79,9 @@ void DisjointSet::unite (int x, int y)
     }
 }
 
-int DisjointSet::doFind (int x)
+int DisjointSet::DoFind (int x)
 {
-    return x == Father_[x] ? x : Father_[x] = doFind (Father_[x]);
+    return x == Father_[x] ? x : Father_[x] = DoFind (Father_[x]);
 }
 
 #endif

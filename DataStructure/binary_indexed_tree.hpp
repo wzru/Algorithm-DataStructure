@@ -1,7 +1,7 @@
 /*
     Programed by HarryShaunWang
     Created on 2018.11.1
-    Last modified on 2018.11.10
+    Last modified on 2019.9.2
 */
 #ifndef BINARY_INDEXED_TREE_HPP
 #define BINARY_INDEXED_TREE_HPP
@@ -15,11 +15,11 @@ public:
     BinaryIndexedTree() = default;
     BinaryIndexedTree (int size); //[1,size]
     ~BinaryIndexedTree() = default;
-    bool isEmpty();
-    int getSize();
-    void resize (int size);
-    void modify (int i, const T &x); //a[i]=x;
-    T getSum (int l, int r);        //sum[l...r]
+    bool IsEmpty();
+    int GetSize();
+    void Resize (int size);
+    void Modify (int i, const T &x); //a[i]=x;
+    T Summate (int l, int r);        //sum[l...r]
     const T &operator[] (int i);
 
 private:
@@ -28,40 +28,40 @@ private:
 
     int lowbit (int x);
     int left (int i);
-    T calcSum (int i); //sum[1...i]
+    T CalcSum (int i); //sum[1...i]
 };
 
 template <typename T>
-BinaryIndexedTree<T>::BinaryIndexedTree (int size) : size_ (size), A_ (std::vector<T> (size)), C_ (std::vector<T> (size)) {}
+BinaryIndexedTree<T>::BinaryIndexedTree (int size) : size_ (size), A_ (size), C_ (size) {}
 
 template <typename T>
-bool BinaryIndexedTree<T>::isEmpty()
+bool BinaryIndexedTree<T>::IsEmpty()
 {
     return size_ == 0;
 }
 
 template <typename T>
-int BinaryIndexedTree<T>::getSize()
+int BinaryIndexedTree<T>::GetSize()
 {
     return size_;
 }
 
 template <typename T>
-void BinaryIndexedTree<T>::resize (int size) //refactory BIT
+void BinaryIndexedTree<T>::Resize (int size) //refactory BIT
 {
-    C_.resize (size + 1);
-    A_.resize (size + 1);
+    C_.Resize (size + 1);
+    A_.Resize (size + 1);
     for (int i = size_ + 1; i <= size; ++i)
         if (left (i) <= size_)
-            C_[i] = getSum (left (i), size_);
+            C_[i] = Summate (left (i), size_);
     size_ = size;
 }
 
 template <typename T>
-void BinaryIndexedTree<T>::modify (int i, const T &x)
+void BinaryIndexedTree<T>::Modify (int i, const T &x)
 {
     if (i > size_)
-        resize (i);
+        Resize (i);
     T delta = x - A_[i];
     for (; i <= size_; i += lowbit (i))
         C_[i] += delta;
@@ -69,9 +69,9 @@ void BinaryIndexedTree<T>::modify (int i, const T &x)
 }
 
 template <typename T>
-T BinaryIndexedTree<T>::getSum (int l, int r)
+T BinaryIndexedTree<T>::Summate (int l, int r)
 {
-    return calcSum (r) - calcSum (l - 1);
+    return CalcSum (r) - CalcSum (l - 1);
 }
 
 template <typename T>
@@ -93,11 +93,11 @@ int BinaryIndexedTree<T>::left (int i)
 }
 
 template <typename T>
-T BinaryIndexedTree<T>::calcSum (int i)
+T BinaryIndexedTree<T>::CalcSum (int i)
 {
     T sum = C_[0];
     if (i > size_)
-        resize (i);
+        Resize (i);
     for (; i; i -= lowbit (i))
         sum += C_[i];
     return sum;
