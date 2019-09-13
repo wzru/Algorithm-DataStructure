@@ -1,7 +1,7 @@
 /*
     Programed by HarryShaunWang
     Created on 2018.11.1
-    Last modified on 2018.11.12
+    Last modified on 2019.9.2
 */
 #ifndef DISJOINT_SET_HPP
 #define DISJOINT_SET_HPP

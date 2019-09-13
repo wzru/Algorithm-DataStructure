@@ -31,8 +31,8 @@ private:
     T CalcSum (int i); //sum[1...i]
 };
 
-template <typename T>
-BinaryIndexedTree<T>::BinaryIndexedTree (int size) : size_ (size), A_ (size), C_ (size) {}
+template <typename T> BinaryIndexedTree<T>::BinaryIndexedTree (
+    int size) : size_ (size), A_ (size), C_ (size) {}
 
 template <typename T>
 bool BinaryIndexedTree<T>::IsEmpty()
@@ -53,7 +53,9 @@ void BinaryIndexedTree<T>::Resize (int size) //refactory BIT
     A_.Resize (size + 1);
     for (int i = size_ + 1; i <= size; ++i)
         if (left (i) <= size_)
+        {
             C_[i] = Summate (left (i), size_);
+        }
     size_ = size;
 }
 
@@ -61,10 +63,14 @@ template <typename T>
 void BinaryIndexedTree<T>::Modify (int i, const T &x)
 {
     if (i > size_)
+    {
         Resize (i);
+    }
     T delta = x - A_[i];
     for (; i <= size_; i += lowbit (i))
+    {
         C_[i] += delta;
+    }
     A_[i] = x;
 }
 
@@ -97,9 +103,13 @@ T BinaryIndexedTree<T>::CalcSum (int i)
 {
     T sum = C_[0];
     if (i > size_)
+    {
         Resize (i);
+    }
     for (; i; i -= lowbit (i))
+    {
         sum += C_[i];
+    }
     return sum;
 }
 
