@@ -1,4 +1,4 @@
-#include "singly_linked_list.hpp"
+#include "../data_structure/singly_linked_list.hpp"
 #include <ctime>
 
 using std::cout;
