@@ -1,7 +1,7 @@
 /*
-	Programed by HarryShaunWang
+	Programed by ShaunWang
 	Created on 2019.9.12
-	Last modified on 2019.10.28
+	Last modified on 2020.1.5
 */
 #ifndef SINGLY_LINKED_LIST_HPP
 #define SINGLY_LINKED_LIST_HPP
@@ -24,15 +24,15 @@ public:
 	void PushFront(const T&);
 	void PushBack(const T&);
 	void PopFront();
-	void PopBack(); 
+	void PopBack();
 	iterator Insert(size_t, const T&);
 	void Insert(const iterator&, const T&);
 	T Erase(size_t);
 	void Reverse();
 	template<class VisitFunction>
-		void Traverse(VisitFunction);
-	template<class CompareFunction>
-		iterator FindIf(const T&, CompareFunction); //Find which satisfies CompareFunction(a, b)
+	void Traverse(VisitFunction);
+	template<typename CompareFunction>
+	iterator FindIf(const T&, CompareFunction); //Find which satisfies CompareFunction(a, b)
 	iterator Find(const T&, iterator); //Find from the specific position
 	iterator Find(const T&); //Find from head
 	bool IsExisted(const T&);
@@ -92,6 +92,17 @@ public:
 	{
 		return n_ != rhs.n_;
 	}
+	bool operator ==(const iterator& rhs) const
+	{
+		return n_ == rhs.n_;
+	}
+	size_t operator -(const iterator& rhs) const
+	{
+		size_t res = 0;
+		auto it = rhs;
+		while (it != *this) ++it, ++res;
+		return res;
+	}
 private:
 	Node* n_;
 };
@@ -147,15 +158,15 @@ template<typename T>inline  T& SinglyLinkedList<T>::Get(size_t pos)
 	if (pos > GetSize() || pos == 0)
 	{
 		Alert(ERROR_INDEX_OUT_OF_BOUND);
-		return *head_;
+		return head_->data;
 	}
-	return *(Begin() + (pos - 1)).data;
+	return *(Begin() + (pos - 1));
 }
 
 template<typename T>
 inline typename SinglyLinkedList<T>::iterator SinglyLinkedList<T>::GetPrecursor(const T& val)
 {
-	Node* fp = head_, *p = fp->next;
+	Node* fp = head_, * p = fp->next;
 	while (p && p->data != val)
 	{
 		fp = p;
@@ -174,7 +185,16 @@ inline bool equal(const T& val1, const T& val2)
 template<typename T>
 inline typename SinglyLinkedList<T>::iterator SinglyLinkedList<T>::GetSuccessor(const T& val)
 {
-	return FindIf(val, equal) + 1;
+	//return FindIf(val, equal) + 1;
+	auto it = Begin();
+	for (; it != End(); ++it)
+	{
+		if ((*it) == val)
+		{
+			break;
+		}
+	}
+	return it+1;
 }
 
 template<typename T>inline  void  SinglyLinkedList<T>::PushFront(const T& val)
@@ -273,7 +293,7 @@ inline T SinglyLinkedList<T>::Erase(size_t pos)
 	{
 		Alert(ERROR_INDEX_OUT_OF_BOUND);
 	}
-	Node* fp = head_, *p = fp->next;
+	Node* fp = head_, * p = fp->next;
 	for (int i = 1; i < pos; ++i)
 	{
 		fp = p;
@@ -305,11 +325,11 @@ template<class VisitFunction>
 inline void SinglyLinkedList<T>::Traverse(VisitFunction vf)
 {
 	for (auto it = Begin(); it != End(); ++it)
-		vf((*it).data);
+		vf((*it));
 }
 
 template<typename T>
-template<class CompareFunction>
+template<typename CompareFunction>
 inline typename SinglyLinkedList<T>::iterator SinglyLinkedList<T>::FindIf(
 	const T& val, CompareFunction cf)
 {

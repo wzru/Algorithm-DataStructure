@@ -1,439 +1,452 @@
 /*
-    Programed by HarryShaunWang
-    Created on 2019.10.28
-    Last modified on 2019.10.28
+	Programed by ShaunWang
+	Created on 2019.1.5
+	Last modified on 2020.1.5
 */
 #ifndef BINARY_TREE_HPP
 #define BINARY_TREE_HPP
 
-#include <iostream>
-#include <queue>
+#include <cstdio>
+#include <malloc.h>
+#include <cstdlib>
 
-template<typename T>
-class BinaryTree
+//函数结果状态代码
+#define TRUE 1
+#define FALSE 0
+#define OK 1
+#define ERROR 0
+#define INFEASTABLE -1
+#define OVERFLOW -2
+
+
+typedef int status;//其是指函数结果状态代码
+typedef char TElemType; //数据元素类型定义
+typedef int ElemType;//标识元素类型定义
+
+struct Node
 {
-public:
-    class iterator;
-    BinaryTree();
-    BinaryTree (const std::string &);
-    ~BinaryTree();
-    void Clear (iterator it = GetRoot()) const;
-    bool IsEmpty (iterator it = GetRoot()) const;
-    size_t GetSize (iterator it = GetRoot()) const;
-    size_t GetDepth (iterator it = GetRoot()) const;
-    iterator GetRoot();
-    T GetValue (iterator);
-    void Assign (iterator, const T &);
-    iterator GetParent (iterator);
-    iterator GetLeftChild (iterator);
-    iterator GetRightChild (iterator);
-    iterator GetLeftSibling (iterator);
-    iterator GetRightSibling (iterator);
-    void InsertChild (iterator, bool, iterator);
-    void InsertLeft (iterator, iterator);
-    void InsertRight (iterator, iterator);
-    void DeleteChild (iterator, bool);
-    void DeleteLeft (iterator);
-    void DeleteRight (iterator);
-    template<typename VisitFunction>
-    void PreorderTraverse (VisitFunction, iterator it = GetRoot());
-    template<typename VisitFunction>
-    void InorderTraverse (VisitFunction, iterator it = GetRoot());
-    template<typename VisitFunction>
-    void PostorderTraverse (VisitFunction, iterator it = GetRoot());
-    template<typename VisitFunction>
-    void LevelTraverse (VisitFunction, iterator it = GetRoot());
-private:
-    struct Node;
-    Node *root_;
-    size_t size_;
-    static const T DEFAULT_VALUE = T();
-    static const iterator EMPTY_ITERATOR = iterator();
-    enum STATUS_CODE { NORMAL, ERROR_EMPTY, ERROR_INDEX_OUT_OF_BOUND, ERROR_ITERATOR_INVALID, ERROR_NONEXISTENT, ERROR_TARGET_EXISTENT };
-    void Alert (unsigned int) const; //Exception
+    ElemType key;
+    TElemType others;
+    Node *lchild, *rchild;//左右孩子指针
 };
 
-template<typename T>
-class BinaryTree<T>::iterator
-{
-public:
-    iterator() = default;
-    iterator (Node *n) : n_ (n) {}
-    ~iterator()
-    {
-        delete n_;
-    }
-    T &operator *()
-    {
-        return n_->data;
-    }
-    size_t GetSize()
-    {
-        return n_->size;
-    }
-    iterator GetParent()
-    {
-        return iterator (n_->p);
-    }
-    bool HasLeftChild()
-    {
-        return n_->lc != nullptr;
-    }
-    bool HasRightChild()
-    {
-        return n_->rc != nullptr;
-    }
-    iterator GetLeftChild()
-    {
-        return iterator (n_->lc);
-    }
-    iterator GetRightChild()
-    {
-        return iterator (n_->rc);
-    }
-private:
-    Node *n_;
-    bool IsValid()
-    {
-        return n_ != nullptr;
-    }
-};
+typedef Node *BinaryTree;
 
-template<typename T>
-struct BinaryTree<T>::Node
-{
-    T data;
-    Node *lc, * rc;
-    Node *p;
-    size_t size;
-    Node() = default;
-    Node (const T &val, Node *lc = nullptr, Node *rc = nullptr,
-          Node *p =  nullptr, size_t size = 0) :
-        data (val), lc (lc), rc (rc), p (p),
-        size (size) {}
-};
+status InitBinaryTree (BinaryTree &T);
+status DestroyBinaryTree (BinaryTree &T);
+status CreateBinaryTree (BinaryTree &T, int &num, FILE *fp);
+status ClearBinaryTree (BinaryTree &T);
+status BinaryTreeEmpty (BinaryTree T);
+status BinaryTreeDepth (BinaryTree T);
+BinaryTree Root (BinaryTree T) { return T->lchild; } //已知根结点位置
+status Value (BinaryTree T, ElemType cur_e, TElemType &e);
+status Assign (BinaryTree &T, ElemType &e, TElemType value);
+status Parent (BinaryTree T, ElemType e, BinaryTree &p);
+status LeftChild (BinaryTree T, ElemType e, BinaryTree &p);
+status RightChild (BinaryTree T, ElemType e, BinaryTree &p);
+status LeftSibling (BinaryTree T, ElemType e, BinaryTree &p);
+status RightSibling (BinaryTree T, ElemType e, BinaryTree &p);
+status InsertChild (BinaryTree &T, BinaryTree &p, int LR, BinaryTree c);
+status DeleteChild (BinaryTree &T, BinaryTree &p, int LR);
+status PreOrderTraverse (BinaryTree T, int (*Visit) (TElemType e));
+status InOrderTraverse (BinaryTree T, int (*Visit) (TElemType e));
+status PostOrderTraverse (BinaryTree T, int (*Visit) (TElemType e));
+status LevelOrderTraverse (BinaryTree T, int (*Visit) (TElemType e));
+status Search (BinaryTree T, TElemType e,
+               BinaryTree &p); //查找结点的指针
+status SaveData (BinaryTree T, FILE *fp);
 
-template<typename T>
-inline BinaryTree<T>::BinaryTree()
+status InitBinaryTree (BinaryTree &T)
 {
-    root_ = new Node();
-    size_ = 0;
+    T = (BinaryTree) malloc (sizeof (Node)); //分配空间给头结点
+    if (!T)
+    {
+        exit (OVERFLOW);    //存储分配失败
+    }
+    T->lchild = NULL;  //置空表
+    T->rchild = NULL;  //防止指针悬挂
+    return OK;
 }
-
-template<typename T>
-inline BinaryTree<T>::~BinaryTree()
+status BinaryTreeEmpty (BinaryTree T)
 {
-    Clear();
-    root_ = nullptr;
-}
-
-template<typename T>
-inline void BinaryTree<T>::Clear (typename BinaryTree<T>::iterator it) const
-{
-    std::queue<typename BinaryTree<T>::iterator> Q;
-    Q.push (it);
-    while (!Q.empty())
+    if (!T->lchild)
     {
-        auto x = Q.front();
-        Q.pop();
-        if (x.HasLeftChild())
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+status CreateBinaryTree (BinaryTree &T, int &num, FILE *fp)
+{
+    char ch;
+    fscanf (fp, "%c", &ch);
+    if (ch == ' ')
+    {
+        T = NULL;    //是否是虚结点
+    }
+    else
+    {
+        T = (BinaryTree) malloc (sizeof (Node));
+        if (!T)
         {
-            Q.push (x.GetLeftChild());
+            exit (OVERFLOW);    //存储分配失败
         }
-        if (x.HasRightChild())
+        T->key = num++;  //给结点编号
+        T->others = ch;  //将数据元素存储
+        printf ("%c\n", ch);
+        CreateBinaryTree (T->lchild, num, fp);
+        CreateBinaryTree (T->rchild, num, fp);
+    }
+    return OK;
+}
+status DestroyBinaryTree (BinaryTree &T)
+{
+    //从头结点开始递归，最后释放头结点
+    if (T)
+    {
+        DestroyBinaryTree (T->lchild);
+        DestroyBinaryTree (T->rchild);
+        free (T);
+    }
+    return TRUE;
+}
+status ClearBinaryTree (BinaryTree &T)
+{
+    if (T)
+    {
+        ClearBinaryTree (T->lchild);
+        ClearBinaryTree (T->rchild);
+        free (T); //释放完左右子树后再释放根结点
+    }
+    return TRUE;
+}
+status BinaryTreeDepth (BinaryTree T)
+{
+    int d = 0, ld = 0, rd = 0;//深度
+    if (T)
+    {
+        //从根结点出发采用递归求深度
+        ld = BinaryTreeDepth (T->lchild);
+        rd = BinaryTreeDepth (T->rchild);
+        d = ld > rd ? ld + 1 : rd + 1;
+    }
+    return d;
+}
+status Value (BinaryTree T, ElemType cur_e, TElemType &e)
+{
+    if (T != NULL)
+    {
+        if (T->key == cur_e)
         {
-            Q.push (x.GetRightChild());
+            e = T->others;
+            return TRUE;  //找到返回
         }
-        delete x.n_;
+        Value (T->lchild, cur_e, e);
+        Value (T->rchild, cur_e, e);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;    //到叶节点为止
     }
 }
-
-template<typename T>
-inline bool BinaryTree<T>::IsEmpty (typename BinaryTree<T>::iterator it) const
+status Assign (BinaryTree &T, ElemType &e, TElemType value)
 {
-    return GetSize (it) == 0;
-}
-
-template<typename T>
-inline size_t BinaryTree<T>::GetSize (typename BinaryTree<T>::iterator it) const
-{
-    return it.GetSize();
-}
-
-template<typename T>
-inline size_t BinaryTree<T>::GetDepth (typename BinaryTree<T>::iterator it) const
-{
-    return it.IsValid() ? std::max (GetDepth (it.GetLeftChild()),
-                                    GetDepth (it.GetRightChild())) + 1 : 0;
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetRoot()
-{
-    if (root_ == nullptr)
+    if (T != NULL)
     {
-        return Alert (ERROR_EMPTY);
-    }
-    return iterator (root_);
-}
-
-template<typename T>
-inline T BinaryTree<T>::GetValue (typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return DEFAULT_VALUE;
-    }
-    return *it;
-}
-
-template<typename T>
-inline void BinaryTree<T>::Assign (typename BinaryTree<T>::iterator it,
-                                   const T &val)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return DEFAULT_VALUE;
-    }
-    *it = val;
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetParent (
-    typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return EMPTY_ITERATOR;
-    }
-    return it.GetParent();
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetLeftChild (
-    typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return EMPTY_ITERATOR;
-    }
-    return it.GetLeftChild();
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetRightChild (
-    typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return EMPTY_ITERATOR;
-    }
-    return it.GetRightChild();
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetLeftSibling (
-    typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return EMPTY_ITERATOR;
-    }
-    if ( (it.n_)->p == nullptr || (it.n_)->p->lc == it.n_)
-    {
-        Alert (ERROR_NONEXISTENT);
-        return EMPTY_ITERATOR;
-    }
-    return it.GetParent().GetLeftChild();
-}
-
-template<typename T>
-inline typename BinaryTree<T>::iterator BinaryTree<T>::GetRightSibling (
-    typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        Alert (ERROR_ITERATOR_INVALID);
-        return EMPTY_ITERATOR;
-    }
-    if ( (it.n_)->p == nullptr || (it.n_)->p->rc == it.n_)
-    {
-        Alert (ERROR_NONEXISTENT);
-        return EMPTY_ITERATOR;
-    }
-    return it.GetParent().GetRightChild();
-}
-
-template<typename T>
-inline void BinaryTree<T>::InsertChild (
-    typename BinaryTree<T>::iterator parent, bool lr,
-    typename BinaryTree<T>::iterator child)
-{
-    if (!parent.IsValid() || !child.IsValid())
-    {
-        return Alert (ERROR_ITERATOR_INVALID);
-    }
-    if ( (child.n_)->rc != nullptr)
-    {
-        return Alert (ERROR_TARGET_EXISTENT);
-    }
-    return lr ? InsertRight (parent, child) : InsertLeft (parent, child);
-}
-
-template<typename T>
-inline void BinaryTree<T>::InsertLeft (typename BinaryTree<T>::iterator parent,
-                                       typename BinaryTree<T>::iterator child)
-{
-    (child.n_)->rc = (parent.n_)->lc;
-    (child.n_)->p = parent.n_;
-    if (parent.HasLeftChild())
-    {
-        (parent.n_)->size += child.GetSize() - (parent.n_)->lc->size;
-    }
-    (parent.n_)->lc = child.n_;
-}
-
-template<typename T>
-inline void BinaryTree<T>::InsertRight (typename BinaryTree<T>::iterator parent,
-                                        typename BinaryTree<T>::iterator child)
-{
-    (child.n_)->rc = (parent.n_)->rc;
-    (child.n_)->p = parent.n_;
-    if (parent.HasRightChild())
-    {
-        (parent.n_)->size += child.GetSize() - (parent.n_)->rc->size;
-    }
-    (parent.n_)->rc = child.n_;
-}
-
-template<typename T>
-inline void BinaryTree<T>::DeleteChild (
-    typename BinaryTree<T>::iterator parent,
-    bool lr)
-{
-    if (!parent.IsValid())
-    {
-        return Alert (ERROR_ITERATOR_INVALID);
-    }
-    return lr ? DeleteRight (parent) : DeleteRight (parent);
-}
-
-template<typename T>
-inline void BinaryTree<T>::DeleteLeft (typename BinaryTree<T>::iterator parent)
-{
-    if (parent.HasLeftChild())
-    {
-        parent.n_->size -= (parent.n_)->lc.size;
-    }
-    delete (parent.n_)->lc;
-    (parent.n_)->lc = nullptr;
-}
-
-template<typename T>
-inline void BinaryTree<T>::DeleteRight (typename BinaryTree<T>::iterator parent)
-{
-    if (parent.HasRightChild())
-    {
-        parent.n_->size -= (parent.n_)->lc.size;
-    }
-    delete (parent.n_)->rc;
-    (parent.n_)->rc = nullptr;
-}
-
-template<typename T>
-template<typename VisitFunction>
-inline void BinaryTree<T>::PreorderTraverse (VisitFunction VF,
-        typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        return Alert (ERROR_ITERATOR_INVALID);
-    }
-    VF (*it);
-    PreorderTraverse (VF, it.GetLeftChild());
-    PreorderTraverse (VF, it.GetRightChild());
-}
-
-template<typename T>
-template<typename VisitFunction>
-inline void BinaryTree<T>::InorderTraverse (VisitFunction VF,
-        typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        return Alert (ERROR_ITERATOR_INVALID);
-    }
-    PreorderTraverse (VF, it.GetLeftChild());
-    VF (*it);
-    PreorderTraverse (VF, it.GetRightChild());
-}
-
-template<typename T>
-template<typename VisitFunction>
-inline void BinaryTree<T>::PostorderTraverse (VisitFunction VF,
-        typename BinaryTree<T>::iterator it)
-{
-    if (!it.IsValid())
-    {
-        return Alert (ERROR_ITERATOR_INVALID);
-    }
-    PreorderTraverse (VF, it.GetLeftChild());
-    PreorderTraverse (VF, it.GetRightChild());
-    VF (*it);
-}
-
-template<typename T>
-template<typename VisitFunction>
-inline void BinaryTree<T>::LevelTraverse (VisitFunction VF,
-        typename BinaryTree<T>::iterator it)
-{
-    std::queue<typename BinaryTree<T>::iterator> Q;
-    Q.push (it);
-    while (!Q.empty())
-    {
-        auto x = Q.front();
-        Q.pop();
-        VF (*x);
-        if (x.HasLeftChild())
+        if (T->key == e)
         {
-            Q.push (x.GetLeftChild());
+            T->others = value;
+            printf ("赋值成功");
+            return TRUE;  //找到并修改返回成功
         }
-        if (x.HasRightChild())
+        Assign (T->lchild, e, value);
+        Assign (T->rchild, e, value);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;    //到叶节点为止
+    }
+}
+status Parent (BinaryTree T, ElemType e, BinaryTree &p)
+{
+    if (e == 1)
+    {
+        return FALSE;
+    }
+    if (T->lchild != NULL || T->rchild != NULL)
+    {
+        if (T->lchild && T->lchild->key == e)
         {
-            Q.push (x.GetRightChild());
+            p = T;
+            return TRUE;  //找到并修改返回成功
+        }
+        if (T->rchild && T->rchild->key == e)
+        {
+            p = T;
+            return TRUE;  //找到并修改返回成功
+        }
+        if (T->lchild)
+        {
+            Parent (T->lchild, e, p);    //左子树递归
+        }
+        if (T->rchild)
+        {
+            Parent (T->rchild, e, p);    //右子树递归
+        }
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;    //到叶节点为止
+    }
+}
+status LeftChild (BinaryTree T, ElemType e, BinaryTree &p)
+{
+    if (T)
+    {
+        if (T->lchild && T->key == e)
+        {
+            p = T->lchild;
+            return TRUE;  //找到并修改返回成功
+        }
+        LeftChild (T->lchild, e, p); //左子树递归
+        if (T->rchild)
+        {
+            LeftChild (T->rchild, e, p);    //右子树递归
+        }
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;    //到叶节点为止
+    }
+}
+status RightChild (BinaryTree T, ElemType e, BinaryTree &p)
+{
+    if (T)
+    {
+        if (T->rchild && T->key == e)
+        {
+            p = T->rchild;
+            return TRUE;  //找到并修改返回成功
+        }
+        if (T->lchild)
+        {
+            RightChild (T->lchild, e, p);    //左子树递归
+        }
+        RightChild (T->rchild, e, p); //右子树递归
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;    //到叶节点为止
+    }
+}
+status LeftSibling (BinaryTree T, ElemType e, BinaryTree &p)
+{
+    if (e == 1)
+    {
+        return OVERFLOW;    //判断根结点
+    }
+    Parent (T, e, p); //找其双亲结点
+    if (p)
+    {
+        if (p->lchild && (p->lchild->key != e))
+        {
+            p = p->lchild;
+            return TRUE;
+        }
+        else
+        {
+            return OVERFLOW;    //左兄弟不存在
         }
     }
+    else
+    {
+        return FALSE;    //无该结点
+    }
+}
+status RightSibling (BinaryTree T, ElemType e, BinaryTree &p)
+{
+    if (e == 1)
+    {
+        return OVERFLOW;    //判断根结点
+    }
+    Parent (T, e, p); //找其双亲结点
+    if (p)
+    {
+        if (p->rchild && (p->rchild->key != e))
+        {
+            p = p->rchild;
+            return TRUE;
+        }
+        else
+        {
+            return OVERFLOW;    //左兄弟不存在
+        }
+    }
+    else
+    {
+        return FALSE;    //无该结点
+    }
+}
+status InsertChild (BinaryTree &T, BinaryTree &p, int LR, BinaryTree c)
+{
+    BinaryTree s;
+    if (!LR)
+    {
+        s = p->lchild;  //保留原位置
+        p->lchild = c;  //插入
+        BinaryTree t = p;
+        while (t && t->rchild)
+        {
+            t = t->rchild;
+        }  //移动指针到其空右子树
+        t->rchild = s;  //将原来分离的子树插入空的右子树中
+        return TRUE;
+    }
+    else
+    {
+        s = p->rchild;
+        p->rchild = c;
+        while (c->rchild)
+        {
+            c = c->rchild;
+        }
+        c->rchild = s;
+        return TRUE;
+    }
+    return FALSE;
+}
+status DeleteChild (BinaryTree &T, BinaryTree &p, int LR)
+{
+    if (!LR)
+    {
+        ClearBinaryTree (p->lchild);
+        p->lchild = NULL;
+        return TRUE;
+    }
+    else
+    {
+        ClearBinaryTree (p->rchild);
+        p->rchild = NULL;
+        return TRUE;
+    }
+    return FALSE;
+}
+status PreOrderTraverse (BinaryTree T, int (*Visit) (TElemType e))
+{
+    if (T)
+    {
+        printf ("\nkey值为%d的结点为:", T->key);
+        if (Visit (T->others))
+            if (PreOrderTraverse (T->lchild, Visit))
+                if (PreOrderTraverse (T->rchild, Visit))
+                {
+                    return OK;
+                }
+        return ERROR;
+    }
+    else
+    {
+        return OK;
+    }
+}
+status InOrderTraverse (BinaryTree T, int (*Visit) (TElemType e))
+{
+    //中序遍历
+    if (T)
+    {
+        InOrderTraverse (T->lchild, Visit);
+        printf ("\nkey值为%d的结点为:", T->key);
+        Visit (T->others);
+        InOrderTraverse (T->rchild, Visit);
+    }
+    return TRUE;
+}
+status PostOrderTraverse (BinaryTree T, int (*Visit) (TElemType e))
+{
+    //后序遍历
+    if (T)
+    {
+        PostOrderTraverse (T->lchild, Visit);
+        PostOrderTraverse (T->rchild, Visit);
+        printf ("\nkey值为%d的结点为:", T->key);
+        Visit (T->others);
+    }
+    return TRUE;
+}
+status LevelOrderTraverse (BinaryTree T, int (*Visit) (TElemType e))
+{
+    //利用足够大的数组去实现队列进行按层遍历
+    BinaryTree t[50];
+    int i = 0;  //队头
+    int n = 1;  //队尾
+    if (T->lchild == NULL)
+    {
+        return TRUE;
+    }
+    t[i] = T->lchild;  //根结点入队
+    while (i < n)  //判断队空
+    {
+        //进行按层遍历
+        printf ("\nkey值为%d的结点为:", t[i]->key);
+        Visit (t[i]->others);
+        if (t[i]->lchild)
+        {
+            t[n++] = t[i]->lchild;
+        }
+        if (t[i]->rchild)
+        {
+            t[n++] = t[i]->rchild;
+        }
+        i++;
+    }
+    return TRUE;
+}
+status Search (BinaryTree T, TElemType e, BinaryTree &p)
+{
+    //依据输入的数据来指向对应结点
+    if (T != NULL)
+    {
+        if (T->others == e)
+        {
+            //判断是否相等
+            p = T;
+            return TRUE;  //找到并修改返回指针
+        }
+        Search (T->lchild, e, p);
+        Search (T->rchild, e, p);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+status SaveData (BinaryTree T, FILE *fp)
+{
+    //保存二叉树
+    char ch;
+    if (T)
+    {
+        ch = T->others;
+        fprintf (fp, "%c", ch);
+        SaveData (T->lchild, fp);
+        SaveData (T->rchild, fp);
+    }
+    else
+    {
+        fprintf (fp, " ");
+        return OK;
+    }
+    return OK;
 }
 
-template<typename T>
-inline void BinaryTree<T>::Alert (unsigned int alert_type) const
-{
-    if (alert_type == ERROR_EMPTY)
-    {
-        std::cerr << "ERROR: The tree is EMPTY!" << std::endl;
-    }
-    else if (alert_type == ERROR_INDEX_OUT_OF_BOUND)
-    {
-        std::cerr << "ERROR: The index is OUR OF BOUND!" << std::endl;
-    }
-    else if (alert_type == ERROR_ITERATOR_INVALID)
-    {
-        std::cerr << "ERROR: The iterator is INVALID!" << std::endl;
-    }
-    else if (alert_type == ERROR_NONEXISTENT)
-    {
-        std::cerr << "ERROR: The target is NONEXISTENT!" << std::endl;
-    }
-    else if (alert_type == ERROR_TARGET_EXISTENT)
-    {
-        std::cerr << "ERROR: The target has been EXISTED!" << std::endl;
-    }
-}
+
 
 #endif

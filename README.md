@@ -1,12 +1,11 @@
 # Algorithm & Data Structure
-Record all the algorithms and data structures that I have learned and I am learning.
+Implement some algorithm and data structure that I have learned and I am learning.
 
-2018.11.1 Binary Indexed Tree 
+| Name                | Created    | Last modified |
+| ------------------- | ---------- | ------------- |
+| Binary Indexed Tree | 2018.11.1  | 2019.9.2      |
+| Disjoint Set        | 2018.11.1  | 2019.9.2      |
+| Quick Sort          | 2018.11.12 | 2019.9.2      |
+| Singly Linked List  | 2019.9.13  | 2020.1.15     |
+| Binary Tree         | 2019.10.28 | 2020.1.5      |
 
-2018.11.1 Disjoint Set 
-
-2018.11.12 Quick Sort
-
-2019.9.13 Singly Linked List
-
-2019.10.28 Binary Tree
