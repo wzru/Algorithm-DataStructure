@@ -49,6 +49,12 @@ TEST (QuickMultiplyModuloTest, Case0)
     }
 }
 
+TEST (QuickMultiplyModuloTest, Case1)
+{
+    u64 a = 314882150829468584, b = 427197303358170108, m = 2009731336725594113;
+    EXPECT_EQ (quick_multiply_modulo (a, b, m), 1068339687814403024);
+}
+
 TEST (QuickPowerTest, Case0)
 {
     EXPECT_EQ (quick_power (2, 0), 1);
@@ -76,12 +82,41 @@ TEST (EulerTest, Case0)
 
 TEST (MultiplePowerModuloTest, Case0)
 {
-    u64 a = 3423748327827483274ULL, b = 3, c = 2020, m = 43857843758454553ULL;
-    EXPECT_EQ (multiple_power_modulo (a, m, b, c), 42253204095794777ULL);
+    u64 a = 3423748327827483274, b = 3, c = 2020, m = 43857843758454553;
+    EXPECT_EQ (multiple_power_modulo (a, m, b, c), 42253204095794777);
 }
 
-int main (int argc, char *argv[])
+TEST (ModularMultiplicativeInverseTest, Case0)
 {
-    ::testing::InitGoogleTest (&argc, argv);
-    return RUN_ALL_TESTS();
+    EXPECT_EQ (modular_multiplicative_inverse (17, 13), 10);
+    EXPECT_EQ (modular_multiplicative_inverse (2, 5), 3);
+    EXPECT_EQ (modular_multiplicative_inverse (13, 105), 97);
+}
+
+TEST (ChineseRemainderTheoremTest, Case0)
+{
+    const uint n = 4;
+    int a[n] = {1, 1, 3, 5}, m[n] = {2, 3, 5, 7};
+    EXPECT_EQ (chinese_remainder_theorem (n, a, m), 103);
+}
+
+TEST (ChineseRemainderTheoremTest, Case1)
+{
+    const uint n = 4;
+    int a[n] = {1, 2, 3, 4}, m[n] = {11, 3, 5, 7};
+    EXPECT_EQ (chinese_remainder_theorem (n, a, m), 683);
+}
+
+TEST (ChineseRemainderTheoremTest, Case2)
+{
+    const uint n = 3;
+    int a[n] = {2, 3, 2}, m[n] = {3, 5, 7};
+    EXPECT_EQ (chinese_remainder_theorem (n, a, m), 23);
+}
+
+TEST (ChineseRemainderTheoremTest, Case3)
+{
+    const uint n = 2;
+    int a[n] = {16, 1}, m[n] = {9, 7};
+    EXPECT_EQ (chinese_remainder_theorem (n, a, m), 43);
 }

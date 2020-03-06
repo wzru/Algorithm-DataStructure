@@ -4,9 +4,12 @@
 #include <utility>
 #include <cmath>
 
-using int64 = long long;
+using i32 = int;
+using u32 = unsigned int;
+using uint = unsigned int;
 using i64 = long long;
 using u64 = unsigned long long;
+using ld = long double;
 
 template<typename T>
 inline T gcd (const T &a, const T &b)
@@ -29,6 +32,19 @@ inline std::pair<T, T> extended_euclidean (const T &a, const T &b)
     }
     std::pair<T, T> tmp = extended_euclidean (b, a % b);
     return std::make_pair (tmp.second, tmp.first - a / b * tmp.second);
+}
+
+template<typename T>
+inline T extended_euclidean (const T &a, const T &b, T &x, T &y)
+{
+    if (b == 0)
+    {
+        x = 1, y = 0;
+        return a;
+    }
+    auto d = extended_euclidean (b, a % b, y, x);
+    y -= a / b * x;
+    return d;
 }
 
 template<typename T>
@@ -78,6 +94,16 @@ inline T quick_multiply_modulo (T a, T b, const T &modu)
         b >>= 1;
     }
     return res;
+}
+
+inline i32 quick_multiply_modulo (i32 a, i32 b, i32 modu)
+{
+    return (i64) a * b % modu;
+}
+
+inline i64 quick_multiply_modulo (i64 a, i64 b, i64 modu)
+{
+    return ( (a * b - i64 ( (ld) a / modu * b) * modu) % modu + modu) % modu;
 }
 
 template<typename T>
@@ -146,6 +172,33 @@ inline T multiple_power_modulo (T base, const T &modu, T expo, TS... expos)
                                    multiple_power_modulo (expo, euler (modu), expos...),
                                    modu);
     }
+}
+
+template<typename T>
+inline T modular_multiplicative_inverse (const T &a, const T &modu)
+{
+    T x, y;
+    return extended_euclidean (a, modu, x, y) == 1 ? (x % modu + modu) % modu : -1;
+}
+
+template<typename T>
+inline T chinese_remainder_theorem (uint n, T a[], T m[])
+{
+    T M = 1, ans = 0;
+    for (uint i = 0; i < n; ++i)
+    {
+        M *= m[i];
+    }
+    for (uint i = 0; i < n; ++i)
+    {
+        auto t = M / m[i];
+        ans = (ans + t * extended_euclidean (t, m[i]).first * a[i]) % M;
+    }
+    if (ans < 0)
+    {
+        ans += M;
+    }
+    return ans;
 }
 
 #endif
